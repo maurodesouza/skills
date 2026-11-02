@@ -43,8 +43,9 @@ If no roadmap exists, finish with `ERROR` (section 9): the backlog is created by
 
 `<roadmap>/.lock` holds the pid and start time of the run that owns the backlog.
 
-1. If the lock exists and its pid is alive, finish with `LOCKED`.
-2. Otherwise (missing, or a stale pid) write the lock with the current pid (`$PPID` of the shell, i.e. the Claude Code process) and the current time. When the runner starts this skill it already holds the lock and passes `ROADMAP_LOCK_OWNER`; in that case keep its lock.
+1. If the environment variable `ROADMAP_LOCK_OWNER` equals the pid in the lock, the runner (`scripts/run.sh`) started this run and already owns the lock: keep it and continue.
+2. Otherwise, if the lock exists and its pid is alive, finish with `LOCKED`.
+3. Otherwise (missing, or a stale pid) write the lock (`pid=<pid>`, `owner=roadmap-implementer`, `started=<time>`) with the pid of the Claude Code process (`$PPID` of the shell).
 
 Release the lock on every exit path, including errors, unless the runner owns it.
 
