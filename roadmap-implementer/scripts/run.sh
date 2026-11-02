@@ -95,10 +95,25 @@ next_ready() {
   ' "${files[@]}" | sort | head -n 1 | cut -f 3
 }
 
+item_file() { grep -l -E "^id:[[:space:]]*[\"']?$1[\"']?[[:space:]]*$" "$ROADMAP"/items/*.md 2>/dev/null | head -n 1; }
+
+# A run that died after starting its item leaves it in-progress with no owner (the runner holds the lock):
+# put it back to pending so it is retried and counted as a failure.
+release_item() {
+  local file
+  file="$(item_file "$1")"
+  [ -n "$file" ] && grep -q '^status:[[:space:]]*in-progress' "$file" || return 0
+  sed -i -E "s/^status:.*/status: pending/" "$file"
+  printf -- '- %s returned to pending by run.sh: the run ended without a result\n' "$(date +%F)" >> "$file"
+  git -C "$ROADMAP" add "$file" >/dev/null 2>&1 &&
+    git -C "$ROADMAP" commit -q -m "♻️ chore: retry $1 after a failed run" >/dev/null 2>&1
+  return 0
+}
+
 # Records an item that keeps failing as blocked, so it stops consuming runs (roadmap/references/format.md).
 block_item() {
   local id="$1" reason="$2" file
-  file="$(grep -l -E "^id:[[:space:]]*[\"']?$id[\"']?[[:space:]]*$" "$ROADMAP"/items/*.md | head -n 1)"
+  file="$(item_file "$id")"
   [ -n "$file" ] || return 1
   sed -i -E \
     -e "s/^status:.*/status: blocked/" \
@@ -162,6 +177,7 @@ while true; do
       ;;
     *)
       failures=$((failures + 1))
+      release_item "$item"
       pause "$(( POLL_INTERVAL < 60 ? POLL_INTERVAL : 60 ))"
       ;;
   esac
