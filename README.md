@@ -161,6 +161,8 @@ My opinions are still here, but they are only applied where they fit. A library 
 
 Copy the skills you want into your project (`.claude/skills` for Claude Code, `.agents/skills` for Codex), or into your user skills folder to use them everywhere.
 
+To keep the global skills in sync with this repository, run `/sync-skills` (or `sync-skills/scripts/sync.sh`, `--dry-run` to preview). It copies every skill to `~/.agents/skills` (Codex) and links it in `~/.claude/skills` (Claude Code), removes skills deleted from the repository and never touches skills installed from other sources.
+
 Then start with the Tech Lead:
 
 ```text
