@@ -15,6 +15,7 @@ You MUST consider the user input before proceeding.
 
 * `no-implement` (also accepted: `--no-implement`, `no implement`, `auto false`, `auto=false`): plan and publish the Epic and Issues, but do not start `epic-implementer`.
 * `no-merge` (also accepted: `--no-merge`, `no merge`): passed through to `epic-implementer`, which then verifies the gates but does not merge.
+* `autonomous` (also accepted: `--autonomous`): nobody will answer questions (used by `roadmap-implementer`). See Clarify the Request.
 
 Without `no-implement`, `epic-implementer` starts automatically after the Epic is published.
 
@@ -55,6 +56,14 @@ Repository context, architecture and publishing are delegated to micro-skills sh
 Call `clarify-first` with the user request.
 
 Plan only after every real ambiguity is resolved.
+
+## Autonomous Mode
+
+When `autonomous` is set, do not call `clarify-first` and never ask the user anything (no question tool, no confirmation):
+
+* Resolve each ambiguity with the safest reasonable default (existing conventions first, then the smallest scope that satisfies the request) and list it under **Assumptions** at the end of the Epic's Architectural Context.
+* When the request is fundamentally ambiguous, or a Human Approval condition applies before anything can be planned, do not publish: finish with `BLOCKED` and the exact questions that need answers.
+* Stop conditions raised later by `epic-implementer` are returned as its result, not asked.
 
 # Context Discovery
 
@@ -321,6 +330,8 @@ Produce:
 8. Human intervention / stop conditions.
 9. Epic and Issue URLs (from `tech-lead-publish`).
 10. Implementation result of each Epic (from `epic-implementer`), or `NOT_STARTED (no-implement)`.
+
+With `autonomous`, end the output with a results list the caller can record: one line per Epic with the Epic URL, the pull request URL and its result (`MERGED`, `READY_TO_MERGE`, `WAITING_FOR_HUMAN`, `BLOCKED`), or a single `BLOCKED` line with the questions when nothing was published.
 
 Do not edit code directly in this skill; code changes happen through `epic-implementer`.
 
