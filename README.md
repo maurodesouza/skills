@@ -16,6 +16,58 @@ The **Epic Implementer** orchestrates the work: it reads the Epic, creates a wor
 
 Both are broken into small sub-skills with a single responsibility. This was the change that gave me the best code quality in the labs.
 
+## Roadmap: feed ideas, let the agent build
+
+On top of that flow, two skills split the work between me and an autonomous agent:
+
+```text
+me ─► roadmap ─► backlog ─► roadmap-implementer ─► tech-lead ─► epic-implementer
+                    ▲                                                   │
+                    └───────────────── next item ◄──────────────────────┘
+```
+
+* **`roadmap`** is the only part I talk to. I dump ideas (new projects, features, changes) and it organizes them into a backlog, asking only what is really ambiguous. That is the last time anyone asks me anything.
+* **`roadmap-implementer`** consumes the backlog: it picks the next ready item, creates the project when it is a new one (private GitHub repository), calls the Tech Lead with the `autonomous` flag (no questions, assumptions written in the Epic) and records the result. An item that needs me is marked `blocked` with the reason, and the agent moves on.
+
+The backlog is a `roadmap/` folder with its own git repository, one Markdown file per item (format in `roadmap/references/format.md`):
+
+* Organization roadmap: `~/organizations/<org>/roadmap/`, covering every project of the organization, including projects that don't exist yet.
+* Project roadmap: `<project>/roadmap/`, ignored by the project's own git.
+
+### Running it 24h
+
+A skill ends when its session ends, so a small script keeps it going. It starts a fresh Claude Code session for each ready item, and while nothing is ready it only reads the item files, without spending tokens:
+
+```bash
+# from the organization root, in tmux or with nohup
+~/.claude/skills/roadmap-implementer/scripts/run.sh ./roadmap
+```
+
+New items added with `/roadmap` while it works are picked up on the next cycle. Per-run logs go to `roadmap/.logs/`. Options are environment variables: `ROADMAP_POLL_INTERVAL` (seconds, default 300), `ROADMAP_MAX_FAILURES` (failed runs before the runner blocks an item, default 3), `ROADMAP_FAILURE_BACKOFF`, `ROADMAP_CLAUDE_ARGS` and `CLAUDE_BIN`.
+
+To run it as a `systemd --user` service (`~/.config/systemd/user/roadmap-fragiola.service`):
+
+```ini
+[Unit]
+Description=Roadmap Implementer - fragiola
+
+[Service]
+WorkingDirectory=%h/organizations/fragiola
+ExecStart=%h/.claude/skills/roadmap-implementer/scripts/run.sh %h/organizations/fragiola/roadmap
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+```
+
+```bash
+systemctl --user enable --now roadmap-fragiola   # start
+journalctl --user -u roadmap-fragiola -f          # follow
+systemctl --user stop roadmap-fragiola            # stop
+```
+
+> **Warning:** the runner starts Claude Code with `--dangerously-skip-permissions`, and the Epic Implementer merges its own pull requests. The agent has full access to the machine and to GitHub with your credentials, 24 hours a day. Run it only where that is acceptable, check `roadmap/.logs/` and the merged pull requests, and stop it with `Ctrl+C` (or `systemctl --user stop`) whenever you want: the lock is released and the next start continues from the backlog.
+
 ## Architecture: the project first
 
 The Tech Lead and the Epic Implementer don't impose an architecture.
@@ -40,10 +92,22 @@ My opinions are still here, but they are only applied where they fit. A library 
 
 | Skill | What it does |
 | --- | --- |
-| `tech-lead` | Turns the request into an Epic and Issues and starts the Epic Implementer (`no-implement` stops after planning) |
+| `tech-lead` | Turns the request into an Epic and Issues and starts the Epic Implementer (`no-implement` stops after planning, `autonomous` never asks) |
 | `tech-lead-publish` | Publishes the Epic and its Issues to GitHub, linked and labeled |
 | `clarify-first` | Asks only the questions the request and the context don't already answer (always in Portuguese) |
 | `project-architecture` | Identifies the project type and its architecture, and selects the opinion skills when there is none |
+
+</details>
+
+<details>
+<summary>Roadmap</summary>
+
+| Skill | What it does |
+| --- | --- |
+| `roadmap` | Turns free-form ideas into a versioned backlog for an organization or a project |
+| `roadmap-implementer` | Executes the next ready item autonomously (project creation, Tech Lead, Epic Implementer) and records the result; `scripts/run.sh` keeps it running |
+| `roadmap-next-item` | Selects the next ready item by status, dependencies and order |
+| `roadmap-create-project` | Creates the folder and the private GitHub repository of a new project |
 
 </details>
 
@@ -101,6 +165,12 @@ Then start with the Tech Lead:
 
 ```text
 /tech-lead <what you want to build>
+```
+
+Or feed the roadmap and let the runner do the rest:
+
+```text
+/roadmap <ideas, projects, features, changes>
 ```
 
 ## Notes
