@@ -44,7 +44,7 @@ Shared skills (`project-architecture`, the opinion skills it selects, `test-writ
 Work as if the user is not watching.
 
 * When a problem can be solved within the Epic scope and the Architecture Profile (failing import, type error, missing config, lint issue, small adaptation of reference code), decide, fix it and continue. Note the decision in the pull request Notes.
-* Ask the user only for the stop conditions in section 10. Everything else is decided by the agent.
+* Never ask the user to choose: decide, record and continue (section 10). Only the hard stops of section 10 wait for the user.
 * `clarify-first` does not apply inside this skill; requirements were clarified when the Epic was planned.
 
 # Architecture
@@ -114,24 +114,26 @@ Do NOT stop merely because an Issue is complete.
 
 If the work reveals a new dependency between Issues, call `epic-handle-dependent-work` again and continue with the updated order.
 
-# 10. Stop Conditions
+# 10. Decisions and Stop Conditions
 
-Continue autonomously unless one of the following occurs:
+Never stop to ask the user to choose between options. The user follows the agent's recommendation, so asking only wastes time.
 
-* Requirements are fundamentally ambiguous.
-* The Epic scope must materially change.
-* A significant architectural decision not covered by the Epic or by the Architecture Profile is required (including an incompatible gap reported by `project-architecture`).
-* A destructive migration is required.
-* Security boundaries must change.
-* A new external dependency or service is required (except the pre-approved dependencies of the Architecture Profile).
-* Significant infrastructure changes are required.
-* Data loss is possible.
-* Validation repeatedly fails without a clear resolution.
-* The implementation contradicts the Epic objectives.
+When the work needs a decision - validation keeps failing, a fix needs a scope, rule or architecture change, a stop condition written in the Epic is reached, the Epic leaves a choice open - decide it yourself:
 
-When a stop condition occurs, stop and clearly explain the decision required from the user.
+1. Pick the option you would recommend (the smallest one that meets the Epic objective).
+2. Record it: what was decided, why, and the alternatives discarded, in the pull request Notes and as a comment on the Epic.
+3. Continue.
 
-Do not stop for minor implementation decisions that can be safely resolved within the existing scope.
+A stop condition written in the Epic is a decision point handled the same way, unless it guards one of the hard stops below.
+
+Stop only before an action that is irreversible or reaches outside the repository and that neither the Epic nor the user authorized:
+
+* Data loss, or a destructive migration.
+* A production release or deploy.
+* A change to security boundaries.
+* A new paid external service, or spending far beyond a budget the Epic states.
+
+Even then, finish every other piece of work first, then stop with your recommendation and the one action that waits for the user.
 
 # 11. Final Validation
 

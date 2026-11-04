@@ -196,7 +196,7 @@ Single PR. Related Epics and dependencies (`Depends on Epic #<n>`), when the wor
 
 ## Stop Conditions
 
-Situations that require human intervention for this Epic.
+Only irreversible or outward-facing actions the implementer may not take alone (data loss, production release, security boundaries, new paid services). Any other choice the work may hit is listed as a decision with its recommended option, which the implementer takes, records and continues.
 ```
 
 ## Issue body

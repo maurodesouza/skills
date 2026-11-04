@@ -13,7 +13,7 @@ Ask only when there is a **real ambiguity**. A question that the prompt already 
 
 Applies to requests coming directly from the user, at the start of `tech-lead` and in `roadmap` (where the questions of autonomous roadmap items are asked).
 
-Does not apply inside `epic-implementer` or its sub-skills: they run autonomously and ask only on their stop conditions. Does not apply to `roadmap-implementer` nor to `tech-lead` with the `autonomous` flag: they never ask.
+Does not apply inside `epic-implementer` or its sub-skills: they run autonomously, decide by their recommendation and stop only on their hard stops. Does not apply to `roadmap-implementer` nor to `tech-lead` with the `autonomous` flag: they never ask.
 
 # 1. Language
 
