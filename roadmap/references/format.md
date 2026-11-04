@@ -25,7 +25,7 @@ In `project` scope, `roadmap/` lives inside the project repository but keeps its
 ```text
 roadmap/
 ├── .git/
-├── .gitignore        # .logs/ and .lock
+├── .gitignore        # .logs/, .lock and .claims/
 ├── ROADMAP.md        # header + index (derived from items/)
 └── items/
     ├── 0001-create-draggable.md
@@ -33,7 +33,7 @@ roadmap/
 ```
 
 * `items/<id>-<slug>.md`: one file per item. `<id>` is a 4-digit sequence (next = highest existing id + 1). `<slug>` is kebab-case from the title. Ids are never reused.
-* `.logs/` and `.lock` belong to the runner (`roadmap-implementer/scripts/run.sh`) and are never committed.
+* `.logs/` (run logs), `.lock` (write lock) and `.claims/` (one file per item a run is working on) are runtime state managed by `scripts/backlog.sh` and `roadmap-implementer/scripts/run.sh`, and are never committed. `backlog.sh` also adds `.claims/` to the repository's `.git/info/exclude` for roadmaps created before it existed.
 
 # 3. ROADMAP.md
 
@@ -135,7 +135,8 @@ Rules:
 * `roadmap` never edits an `in-progress` item. A change to it becomes a new item with `depends-on` the in-progress one.
 * `roadmap` may edit, re-order or delete `pending` and `blocked` items. Deleting removes the file.
 * `done` items are history: never edited, never deleted.
-* An item is **ready** when it is `pending` and every `depends-on` item is `done`. An item whose dependency is `blocked` or missing is not ready; it stays `pending`.
+* An item is **ready** when it is `pending`, every `depends-on` item is `done` and it has no live claim (section 7). An item whose dependency is `blocked` or missing is not ready; it stays `pending`.
+* `backlog.sh` records runs that ended without a result: the item goes back to `pending` with a `run failed (n/max)` log line, and to `blocked` after `ROADMAP_MAX_FAILURES` (default 3) failures since it was last unblocked.
 
 # 6. Commits
 
@@ -148,4 +149,22 @@ Every change to the roadmap is committed in the roadmap repository, with the rep
 ⛔ chore: block 0002 column pinning
 ```
 
-Regenerate `ROADMAP.md` before every commit. Commit only roadmap files.
+Regenerate `ROADMAP.md` before every commit. Commit only roadmap files, only under the write lock (section 7), staging only the files the run changed.
+
+The commits of `backlog.sh` (`♻️ chore: retry <id> after a failed run`, `♻️ chore: requeue <id> after a stopped run`, `⛔ chore: block <id> after failed runs`) change only the item: the next write of `roadmap` or `roadmap-implementer` regenerates `ROADMAP.md`.
+
+# 7. Parallel Runs
+
+Several runs can work on one roadmap at the same time: chats running `roadmap` or `roadmap-implementer`, and the workers of `run.sh` (`ROADMAP_WORKERS`). Two mechanisms keep them apart, both handled by `scripts/backlog.sh`:
+
+| Mechanism | What | Held |
+| --- | --- | --- |
+| Write lock | `.lock`: pid of the process writing the backlog (`flock`-guarded) | Only while reading and writing items, regenerating `ROADMAP.md` and committing. Never while planning or implementing |
+| Claim | `.claims/<id>`: pid of the process working on that item | From the moment the item is selected until its result is recorded |
+
+Rules:
+
+* Take the lock before selecting an item or writing any roadmap file, release it right after the commit, on every exit path. A lock whose process died, or older than `ROADMAP_LOCK_TTL` (default 15 min), is taken over.
+* Claim an item under the lock before starting it. Nobody else selects, edits or records a claimed item.
+* A claim whose process died marks an abandoned item: `backlog.sh recover` returns its `in-progress` item to `pending` (counted as a failed run).
+* `<pid>` is the pid of the Claude Code process (`$PPID` of the shell), or of the `run.sh` worker that claimed the item (exported to its session as `ROADMAP_CLAIM_OWNER`).

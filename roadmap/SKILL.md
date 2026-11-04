@@ -27,7 +27,7 @@ Resolve the roadmap folder with the rules of `references/format.md` (section 1).
 
 If the folder does not exist, or exists without `ROADMAP.md`:
 
-1. Create `roadmap/`, `roadmap/items/` and `roadmap/.gitignore` (`.logs/`, `.lock`).
+1. Create `roadmap/`, `roadmap/items/` and `roadmap/.gitignore` (`.logs/`, `.lock`, `.claims/`).
 2. `git init` when it is not a git repository yet.
 3. In `project` scope, add `roadmap/` to the project's `.git/info/exclude`.
 4. Write the `ROADMAP.md` header:
@@ -56,7 +56,7 @@ Split the input into items. For each one decide:
 Then compare with the existing items:
 
 * Same intent as an existing `pending` or `blocked` item → update that item (merge the details), do not create a duplicate.
-* Same intent as an `in-progress` item → create a new item that depends on it (never edit an in-progress item).
+* Same intent as an `in-progress` item, or a `pending` item with a live claim (`scripts/backlog.sh claims <roadmap>`: a run is about to start it) → create a new item that depends on it (never edit it).
 * Same intent as a `done` item → a new item only if the user asks for something beyond what was done.
 * Requests to cancel, re-prioritize or answer a blocked item → apply them to the existing items (`references/format.md`, section 5).
 
@@ -70,6 +70,12 @@ Do not ask about planning or implementation details: `tech-lead` decides them. W
 
 # 5. Write the Items
 
+`roadmap-implementer` runs may be working on the same roadmap right now. Write only under the backlog write lock (`references/format.md`, section 7):
+
+1. `scripts/backlog.sh lock <roadmap> $PPID roadmap` (the script is in this skill's folder).
+2. Re-read the items you are about to change and the claims: an item that became `in-progress` or claimed since step 2 is no longer edited (apply the rule of step 3). Read the next free id now.
+3. Write, index and commit (this section and section 6), then `scripts/backlog.sh unlock <roadmap> $PPID`, also when something fails.
+
 For each new or changed item:
 
 1. Write `items/<id>-<slug>.md` with the frontmatter and sections of `references/format.md` (section 4).
@@ -80,7 +86,8 @@ For each new or changed item:
 # 6. Index and Commit
 
 1. Regenerate `ROADMAP.md` below the header (`references/format.md`, section 3).
-2. Commit in the roadmap repository, one commit per input, with the commit style of `references/format.md` (section 6).
+2. Commit in the roadmap repository, one commit per input, with the commit style of `references/format.md` (section 6). Stage only the files this run changed.
+3. Release the lock.
 
 # 7. Final Output
 

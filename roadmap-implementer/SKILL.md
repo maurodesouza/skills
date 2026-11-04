@@ -9,13 +9,15 @@ description: Autonomously execute the next ready item of a roadmap backlog - cre
 $ARGUMENTS
 ```
 
-The input may contain the roadmap folder path. Without it, resolve the roadmap from the current directory.
+The input may contain the roadmap folder path and an item id (for example `0003`). Without a path, resolve the roadmap from the current directory. Without an id, the next ready item is selected.
 
 # Objective
 
 Act as an autonomous Roadmap Implementer.
 
-Each run processes **at most one** ready item from start to finish and records the result in the backlog. Continuous execution comes from `scripts/run.sh`, which starts a fresh session for every item and keeps watching the backlog.
+Each run processes **at most one** item from start to finish and records the result in the backlog. Continuous execution comes from `scripts/run.sh`, which starts a fresh session for every item and keeps watching the backlog.
+
+Several runs may work on the same roadmap at the same time (chats started by the user and `run.sh` workers), each on its own item. The backlog is only touched inside short sections under the write lock, and each run owns its item through a claim (`roadmap/references/format.md`, section 7).
 
 The backlog format, statuses and commit messages are defined in `roadmap/references/format.md`. Read it first and follow it exactly.
 
@@ -24,6 +26,8 @@ The backlog format, statuses and commit messages are defined in `roadmap/referen
 This skill is an orchestrator. Planning is done by `tech-lead`, implementation by `epic-implementer` (started by `tech-lead`), item selection by `roadmap-next-item` and project creation by `roadmap-create-project`.
 
 Do not re-implement inside this skill what those skills are responsible for.
+
+Lock, claims and recovery go through `backlog.sh`, in the `scripts/` folder of the `roadmap` skill (installed next to this skill: `../roadmap/scripts/backlog.sh` from this skill's folder). Below, `<pid>` is the pid of the Claude Code process: `$PPID` of the shell.
 
 # Autonomy
 
@@ -39,25 +43,29 @@ Resolve the roadmap folder with the rules of `roadmap/references/format.md` (sec
 
 If no roadmap exists, finish with `ERROR` (section 9): the backlog is created by `roadmap`, not here.
 
-# 2. Lock
+# 2. Lock and Recover
 
-`<roadmap>/.lock` holds the pid and start time of the run that owns the backlog.
+1. `backlog.sh lock <roadmap> <pid> roadmap-implementer`. It waits while another run is writing to the backlog. If it fails (timeout), finish with `LOCKED`.
+2. `backlog.sh recover <roadmap> <pid>`: items left `in-progress` by a run that died go back to `pending`, or to `blocked` after repeated failures. Never touch an `in-progress` item that has a live claim: another run is working on it.
 
-1. If the environment variable `ROADMAP_LOCK_OWNER` equals the pid in the lock, the runner (`scripts/run.sh`) started this run and already owns the lock: keep it and continue.
-2. Otherwise, if the lock exists and its pid is alive, finish with `LOCKED`.
-3. Otherwise (missing, or a stale pid) write the lock (`pid=<pid>`, `owner=roadmap-implementer`, `started=<time>`) with the pid of the Claude Code process (`$PPID` of the shell).
+The lock is held only while reading or writing the backlog (sections 2-4 and section 7), never while planning or implementing. Release it with `backlog.sh unlock <roadmap> <pid>` on every exit path, including errors, as soon as the commit of that section is done.
 
-Release the lock on every exit path, including errors, unless the runner owns it.
+# 3. Select and Claim the Item
 
-# 3. Select the Item
+Call `roadmap-next-item` with the roadmap path and the item id from the input, when there is one.
 
-Call `roadmap-next-item` with the roadmap path.
+If it returns `NONE`, release the lock and finish with `IDLE` (with an id, report why that item is not ready).
 
-If it returns `NONE`, release the lock and finish with `IDLE`.
+Claim the selected item: `backlog.sh claim <roadmap> <id> <pid>`.
+
+* When the environment variable `ROADMAP_CLAIM_OWNER` is set and the item claim already holds that pid, the runner (`scripts/run.sh`) claimed it for this run: keep that claim and do not claim it again.
+* If the claim fails (another live run holds it), release the lock and finish with `IDLE`.
+
+From here on, remove the claim on every exit path (`backlog.sh unclaim <roadmap> <id>`), after recording the result.
 
 # 4. Start the Item
 
-Set the item `status: in-progress`, `updated`, append a log line, regenerate `ROADMAP.md` and commit (`🚧 chore: start <id> <title>`).
+Set the item `status: in-progress`, `updated`, append a log line, regenerate `ROADMAP.md`, commit (`🚧 chore: start <id> <title>`) and release the lock.
 
 # 5. Project
 
@@ -77,6 +85,8 @@ Collect, per Epic: Epic URL, pull request URL and the result (`MERGED`, `READY_T
 
 # 7. Record the Result
 
+Decide the result first, without the lock:
+
 | Result | Item status | Details |
 | --- | --- | --- |
 | Every Epic `MERGED` | `done` | `epics`, `pull-requests` |
@@ -89,14 +99,15 @@ Before marking an item `done`, verify that the merged Epics cover the item's `Re
 
 A `blocked-reason` must say what the user has to decide or do, in one or two sentences, so they can answer it through `roadmap`.
 
-Then: update `updated`, append a log line, regenerate `ROADMAP.md`, commit (`✅ chore: complete <id> <title>` or `⛔ chore: block <id> <title>`) and release the lock.
+Then write it under the lock (`backlog.sh lock <roadmap> <pid> roadmap-implementer`; on timeout keep retrying: the result must be recorded): re-read the item, set the status and details, create the follow-up item (next free id read under the lock), update `updated`, append a log line, regenerate `ROADMAP.md` from the current `items/` (other runs may have changed other items meanwhile), commit (`✅ chore: complete <id> <title>` or `⛔ chore: block <id> <title>`), remove the claim and release the lock.
 
 # 8. Rules
 
 * One item per run. Do not pick another item after finishing: the runner starts a fresh session for it.
-* Only this skill changes an item to `in-progress`, `done` or `blocked`. Never edit other items, except creating a follow-up item.
+* Only this skill changes an item to `in-progress`, `done` or `blocked` (besides the failed-run recovery of `backlog.sh`). Never edit other items, except creating a follow-up item.
 * Items added to the backlog during the run are not touched; the next run sees them.
-* Commit only roadmap files in the roadmap repository.
+* Commit only roadmap files in the roadmap repository, and only while holding the lock. Stage only the files this run changed (the item, follow-up items and `ROADMAP.md`).
+* Never hold the lock while planning or implementing, and never edit, start or record an item claimed by another live run.
 
 # 9. Final Output
 
@@ -119,5 +130,5 @@ ROADMAP_IMPLEMENTER_STATUS: <DONE|BLOCKED|IDLE|LOCKED|ERROR> <item-id or ->
 | `DONE` | The item was completed |
 | `BLOCKED` | The item was recorded as `blocked` |
 | `IDLE` | No ready item |
-| `LOCKED` | Another run owns the backlog |
+| `LOCKED` | The backlog write lock could not be taken in time |
 | `ERROR` | The run could not record a result (no roadmap, the backlog itself could not be read or committed) |
