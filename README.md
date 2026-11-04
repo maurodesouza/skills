@@ -43,7 +43,24 @@ A skill ends when its session ends, so a small script keeps it going. It starts 
 ~/.claude/skills/roadmap-implementer/scripts/run.sh ./roadmap
 ```
 
-New items added with `/roadmap` while it works are picked up on the next cycle. Per-run logs go to `roadmap/.logs/`. Options are environment variables: `ROADMAP_POLL_INTERVAL` (seconds, default 300), `ROADMAP_MAX_FAILURES` (failed runs before the runner blocks an item, default 3), `ROADMAP_FAILURE_BACKOFF`, `ROADMAP_CLAUDE_ARGS` and `CLAUDE_BIN`.
+New items added with `/roadmap` while it works are picked up on the next cycle. Per-run logs go to `roadmap/.logs/`. Options are environment variables: `ROADMAP_WORKERS` (items implemented in parallel, default 1), `ROADMAP_POLL_INTERVAL` (seconds, default 300), `ROADMAP_MAX_FAILURES` (failed runs before an item is blocked, default 3), `ROADMAP_FAILURE_BACKOFF`, `ROADMAP_CLAUDE_ARGS` and `CLAUDE_BIN`.
+
+### Parallel runs
+
+Several items can be implemented at the same time, on the same roadmap:
+
+```bash
+ROADMAP_WORKERS=4 ~/.claude/skills/roadmap-implementer/scripts/run.sh ./roadmap   # 4 items at once
+```
+
+Or by hand, one chat per item, also alongside the runner and alongside `/roadmap`:
+
+```text
+/roadmap-implementer          # next ready item
+/roadmap-implementer 0007     # that item, if it is ready
+```
+
+Each run claims its own item (`roadmap/.claims/`) and only takes the backlog write lock (`roadmap/.lock`) for the few seconds it reads or commits roadmap files, never while planning or implementing. Each Epic is built in its own worktree, so the main checkout of every project stays free for testing. A run that dies (closed chat, crash) leaves its item `in-progress`; the next run returns it to `pending`. The lock and claims are handled by `roadmap/scripts/backlog.sh` and need `flock` (util-linux).
 
 To run it as a `systemd --user` service (`~/.config/systemd/user/roadmap-fragiola.service`):
 
@@ -66,7 +83,7 @@ journalctl --user -u roadmap-fragiola -f          # follow
 systemctl --user stop roadmap-fragiola            # stop
 ```
 
-> **Warning:** the runner starts Claude Code with `--dangerously-skip-permissions`, and the Epic Implementer merges its own pull requests. The agent has full access to the machine and to GitHub with your credentials, 24 hours a day. Run it only where that is acceptable, check `roadmap/.logs/` and the merged pull requests, and stop it with `Ctrl+C` (or `systemctl --user stop`) whenever you want: the lock is released and the next start continues from the backlog.
+> **Warning:** the runner starts Claude Code with `--dangerously-skip-permissions`, and the Epic Implementer merges its own pull requests. The agent has full access to the machine and to GitHub with your credentials, 24 hours a day. Run it only where that is acceptable, check `roadmap/.logs/` and the merged pull requests, and stop it with `Ctrl+C` (or `systemctl --user stop`) whenever you want: items being implemented go back to `pending` and the next start continues from the backlog.
 
 ## Architecture: the project first
 
