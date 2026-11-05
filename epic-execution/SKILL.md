@@ -36,6 +36,8 @@ Before using any external library API, run `epic-current-documentation`.
 
 Match the surrounding code style and the reference files.
 
+Documentation written or updated for the Issue uses the language resolved by `epic-repository-rules` for documentation.
+
 # 3. Validate
 
 1. Call `test-writer` when tests are applicable.

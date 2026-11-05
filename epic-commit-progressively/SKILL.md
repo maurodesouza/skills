@@ -9,7 +9,7 @@ description: Create atomic commits (one coherent change each, balanced granulari
 $ARGUMENTS
 ```
 
-The input must contain the worktree path, the Issue being worked on and the commit convention from `epic-repository-rules`.
+The input must contain the worktree path, the Issue being worked on and the commit convention and language from `epic-repository-rules` (call it if they are not in context).
 
 # Objective
 
@@ -31,9 +31,9 @@ Balance:
 
 # 2. Message
 
-Follow the commit convention from repository rules.
+Follow the commit convention from repository rules, in the language they resolved for commits (English when there is no pattern), whatever language the request or the Issue is in.
 
-If none exists, use:
+If no convention exists, use:
 
 ```text
 <emoji> <type>: <short description in imperative, lowercase>

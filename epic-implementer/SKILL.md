@@ -72,6 +72,8 @@ Call `epic-repository-rules`.
 
 Repository rules always override workflow defaults.
 
+Commits, the pull request, comments and documentation follow the languages resolved here, not the language of the request or of the conversation.
+
 # 4. Architecture Profile
 
 Call `project-architecture` with the Epic and the outputs of steps 2-3. Load the opinion skills it selects, and only those.

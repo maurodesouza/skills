@@ -9,13 +9,15 @@ description: Publish a final Epic and its Issues to GitHub, linked and labeled, 
 $ARGUMENTS
 ```
 
-The input must contain the final Epic and Issues in the structure defined by `tech-lead`, plus the issue conventions from `epic-repository-rules`.
+The input must contain the final Epic and Issues in the structure defined by `tech-lead`, plus the issue conventions and language from `epic-repository-rules`.
 
 # Objective
 
 Create the Epic and its Issues on GitHub exactly as planned.
 
 This skill does not plan. It does not change scope, split or merge Issues.
+
+Titles and bodies are published in the language resolved for issues (English when there is no pattern), whatever language the request is in. Before publishing, rewrite any text that is in another language, without changing its meaning.
 
 # 1. Preconditions
 
@@ -24,7 +26,7 @@ This skill does not plan. It does not change scope, split or merge Issues.
 
 # 2. Labels
 
-Use the repository labels and issue templates when they exist.
+Use the repository labels and issue templates when they exist, and the title style of its recent issues.
 
 If no convention exists, use `epic` for the Epic and the type (`feature`, `refactor`, `bug`, `chore`) for each Issue. Create a missing label only when the repository has no equivalent.
 

@@ -73,6 +73,10 @@ When `autonomous` is set, do not call `clarify-first` and never ask the user any
 
 If multiple instruction sources exist, merge them into a single project context.
 
+# Language of the Records
+
+Talk to the user in their language, but the Epic and Issues are project records: write them in the language `epic-repository-rules` resolved for issues (English when there is no pattern), never in the language of the request just because the user wrote in it.
+
 # Current Tool Documentation
 
 Call `epic-current-documentation` for every external tool, library, framework, SDK, API or dependency the plan uses, installs, upgrades or integrates.
@@ -148,7 +152,7 @@ Optimize them around:
 
 When the request represents a meaningful feature, improvement, migration, or architectural change, create an Epic.
 
-The Epic is the contract read by `epic-read`. Always use exactly this structure and these headings.
+The Epic is the contract read by `epic-read`. Always use exactly this structure and these headings, whatever the language of the text under them.
 
 ## Epic body
 

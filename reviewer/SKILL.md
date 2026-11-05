@@ -104,6 +104,10 @@ Review UI against `fragiola-ui`:
 
 Violations of the rules of the selected skills are at least High severity.
 
+## Project Records
+
+* Does the documentation use the language resolved by `epic-repository-rules`?
+
 ## Maintainability
 
 * Is the code understandable?

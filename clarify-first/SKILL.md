@@ -26,6 +26,8 @@ All communication with the user is in **Brazilian Portuguese**:
 
 Never ask a question or present an option in English. Code identifiers, file names and commands stay as they are.
 
+This covers the conversation only. Commits, pull requests, issues and documentation follow the language of the project (`epic-repository-rules`), and English when it has no pattern.
+
 # 2. Read Before Asking
 
 Before writing any question:

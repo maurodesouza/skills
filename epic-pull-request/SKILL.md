@@ -9,13 +9,15 @@ description: Push the Epic branch and open the pull request for a fully validate
 $ARGUMENTS
 ```
 
-The input must contain the Epic summary, the Issues implemented, the worktree path, the branch name, the validation performed and the PR conventions from `epic-repository-rules`.
+The input must contain the Epic summary, the Issues implemented, the worktree path, the branch name, the validation performed and the PR conventions and language from `epic-repository-rules` (call it if they are not in context).
 
 # Objective
 
 Open one pull request for the whole Epic.
 
 Run only after the Epic passed final validation.
+
+Write the title and the body in the language resolved for pull requests (English when there is no pattern), whatever language the request or the Epic is in.
 
 # 1. Push
 
@@ -30,6 +32,8 @@ Check whether the repository provides a pull request template.
 If one exists:
 
 Use it.
+
+Otherwise, when the recent pull requests have an established body structure, follow it.
 
 Otherwise generate:
 
