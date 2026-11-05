@@ -36,7 +36,7 @@ Never overwrite or delete existing work.
 Then:
 
 1. `git init -b main`
-2. Write a `README.md` with the project name and the goal from the item (`Request` and `Details`, summarized in two or three sentences).
+2. Write a `README.md` in English with the project name and the goal from the item (`Request` and `Details`, summarized in two or three sentences). A new project has no pattern yet, so English applies even when the `Request` is in Portuguese, unless the item explicitly sets the language of the project.
 3. Commit it: `🎉 chore: initialize <project>`.
 
 # 3. GitHub Repository

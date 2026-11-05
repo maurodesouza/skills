@@ -37,6 +37,8 @@ Work as if the user is not watching. Nobody will answer.
 * Every problem has one of two outcomes: decide and continue, or record the item as `blocked` with a reason the user can act on.
 * A blocked item never stops the backlog: the next run continues with the next ready item.
 
+Item text keeps the language rule of `roadmap/references/format.md` (section 6). The `Request` of an item may be in Portuguese: that does not change the language of the backlog records, nor of the Epics, commits and pull requests of the project.
+
 # 1. Resolve the Roadmap
 
 Resolve the roadmap folder with the rules of `roadmap/references/format.md` (section 1). Read the `ROADMAP.md` header.

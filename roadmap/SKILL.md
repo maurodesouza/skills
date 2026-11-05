@@ -79,7 +79,7 @@ Do not ask about planning or implementation details: `tech-lead` decides them. W
 For each new or changed item:
 
 1. Write `items/<id>-<slug>.md` with the frontmatter and sections of `references/format.md` (section 4).
-2. `Request`: the user's words for that item.
+2. `Request`: the user's words for that item, verbatim. Every other part of the item, including its `title`, follows the language rule of `references/format.md` (section 6).
 3. `Details`: everything clarified or inferred, written so `tech-lead` can plan without asking (expected behavior, constraints, the project type for a new project, answers given in step 4).
 4. Append a `Log` line (`created by roadmap`, `updated by roadmap: <what>`, `unblocked by roadmap: <answer>`).
 

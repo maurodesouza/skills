@@ -138,7 +138,9 @@ Rules:
 * An item is **ready** when it is `pending`, every `depends-on` item is `done` and it has no live claim (section 7). An item whose dependency is `blocked` or missing is not ready; it stays `pending`.
 * `backlog.sh` records runs that ended without a result: the item goes back to `pending` with a `run failed (n/max)` log line, and to `blocked` after `ROADMAP_MAX_FAILURES` (default 3) failures since it was last unblocked.
 
-# 6. Commits
+# 6. Language and Commits
+
+Backlog records (item titles and text, `blocked-reason`, log lines, commit messages) follow the language already established in the roadmap repository (its items and recent commits, last 20). When there is no pattern, they are in English. The language the user writes in is never a signal; the only exception is `Request`, which keeps the user's words verbatim.
 
 Every change to the roadmap is committed in the roadmap repository, with the repository commit style:
 
