@@ -136,7 +136,7 @@ My opinions are still here, but they are only applied where they fit. A library 
 | `epic-implementer` | Orchestrates the whole Epic, from reading it to merging the pull request |
 | `epic-read` | Reads the Epic and its Issues |
 | `epic-discover-repository` | Reports the stack, scripts, structure and existing patterns |
-| `epic-repository-rules` | Collects the project conventions |
+| `epic-repository-rules` | Collects the project conventions and resolves the language of its records, from the rule files and the recent history |
 | `epic-current-documentation` | Checks the current docs before using any tool or dependency |
 | `epic-plan-execution` | Maps each Issue to the architecture and orders the work |
 | `epic-handle-dependent-work` | Resolves the order of the Issues from their dependencies |
@@ -196,3 +196,4 @@ Or feed the roadmap and let the runner do the rest:
 
 * The library and back-end profiles don't have their own opinion skills yet. For now they only follow the defaults in `project-architecture/references/`.
 * The skills are written in English, but `clarify-first` asks its questions in Portuguese, because that is how I work.
+* Commits, pull requests, issues and documentation never follow the language of the conversation. `epic-repository-rules` reads the rule files and the last 20 commits, pull requests and issues, and those records follow the language and conventions established there. Without a pattern, they are in English.
