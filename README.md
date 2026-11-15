@@ -99,7 +99,7 @@ My opinions are still here, but they are only applied where they fit. A library 
 | Project type | Opinion skills |
 | --- | --- |
 | React app | `command-bus-architecture`, `command-handle-implementation`, `setup-command-system`, `fragiola-ui`, `utils-implementation` |
-| Library | `utils-implementation` (no library architecture skill yet) |
+| Library | `fragiola-ecosystem` (Fragiola libraries, also when they have their own architecture), `utils-implementation` |
 | Back-end | `utils-implementation` (no back-end architecture skill yet) |
 
 ## Skills
@@ -171,6 +171,15 @@ My opinions are still here, but they are only applied where they fit. A library 
 | `utils-implementation` | A util must earn its existence: no wrappers of one native operation, one namespace per domain |
 
 `command-bus-architecture` also has a small script (`scripts/check-architecture.mjs`) that checks the main rules in seconds, without running a full lab.
+
+</details>
+
+<details>
+<summary>Opinions (Fragiola libraries)</summary>
+
+| Skill | What it does |
+| --- | --- |
+| `fragiola-ecosystem` | Loads the Fragiola guidelines (`~/organizations/fragiola/guidelines`, kept locally): core + adapters, the model API (command bus, `run`/`can`/`check`/`get`/`is`), headless primitives and composition, integration between libraries, the repository template and the fragiola.com docs export. Dockable is the reference implementation |
 
 </details>
 

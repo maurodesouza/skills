@@ -78,11 +78,13 @@ Each project type has its own profile. Read the one that matches and only that o
 | Type | Profile | Opinion skills |
 | --- | --- | --- |
 | `react-app` | `references/react-app.md` | `command-bus-architecture`, `command-handle-implementation`, `setup-command-system`, `fragiola-ui`, `utils-implementation` |
-| `library` | `references/library.md` | `utils-implementation` (TypeScript) |
+| `library` | `references/library.md` | `fragiola-ecosystem` (Fragiola libraries), `utils-implementation` (TypeScript) |
 | `backend` | `references/backend.md` | `utils-implementation` (TypeScript) |
 | `other` | none | The language's standard conventions |
 
 Opinion skills of one type are never loaded for another: a library or a back-end never receives the Command Bus, MobX stores or Fragiola UI.
+
+A Fragiola library (under `~/organizations/fragiola/`, or publishing `@fragiola/*`) loads `fragiola-ecosystem` in **both** modes: in `EXISTING` mode the project's `AGENTS.md` wins, and the guidelines cover what it has not decided.
 
 To add opinions for a type, create the skill and list it in this table and in the profile.
 

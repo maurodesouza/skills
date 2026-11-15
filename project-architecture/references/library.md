@@ -8,9 +8,10 @@ A library is consumed by other projects, so its architecture is about the public
 
 | Skill | What it decides |
 | --- | --- |
+| `fragiola-ecosystem` | Fragiola libraries only (under `~/organizations/fragiola/`, or publishing `@fragiola/*`): core + adapters, the model API (command bus, `run`/`can`/`check`/`get`/`is`), headless primitives and composition, integration, repository template, docs site export. Loaded in `EXISTING` mode too, where the project's `AGENTS.md` wins |
 | `utils-implementation` | Internal helpers (TypeScript): which utils exist and how they are written |
 
-There is no library architecture skill yet. Until one exists, follow these defaults and the ecosystem's conventions.
+For a Fragiola library, `fragiola-ecosystem` is the library architecture and wins over the defaults below where they differ. For any other library there is no library architecture skill yet: follow these defaults and the ecosystem's conventions.
 
 ## Defaults
 
